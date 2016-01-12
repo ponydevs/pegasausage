@@ -196,6 +196,7 @@ function resetGame() {
 	collisionNumber = 0;
 	shakeStep = 0;
 	shaking = false;
+	framesPassed = 0;
 	distance = 0;
 	hp = difficulty.hp;
 	text2.innerHTML = "HP: " + hp + "<br/>Distance: " + Math.floor(distance * cloudSpeed);
@@ -216,9 +217,13 @@ function resetGame() {
 	char.lookAt(poo);
 }			
 
+var framesPassed = 0;
+
 // runs every frame
 function render() {
 	requestAnimationFrame(render);
+
+	framesPassed ++;
 
 	if (input.isDown("P")) {
 		pkeyDown = true;
@@ -232,6 +237,15 @@ function render() {
 		}
 
 		pkeyDown = false;
+	}
+	
+	if((framesPassed / 900) % 1 == 0 ){
+		cloudAmount *= 1.5;
+		cloudSpeed *= 1.5;
+		generationRate = Math.floor(generationRate * 0.75);
+		if(generationStep >= generationRate){
+			generationStep = 0;
+		}
 	}
 
 	tpLogo.lookAt(Player.position);
