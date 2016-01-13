@@ -2,7 +2,7 @@
 
 var diffs = [
 
-	normal = {
+	{
 		name: "Normal",
 		generationRate: 60,
 		playerSpeed: 0.04,
@@ -11,7 +11,7 @@ var diffs = [
 		cloudAmount: 20
 	},
 
-	hard = {
+	{
 		name: "Hard",
 		generationRate: 30,
 		playerSpeed: 0.04,
@@ -20,7 +20,7 @@ var diffs = [
 		cloudAmount: 40
 	},
 
-	insane = {
+	{
 		name: "Insane",
 		generationRate: 15,
 		playerSpeed: 0.08,
@@ -29,7 +29,7 @@ var diffs = [
 		cloudAmount: 80
 	},
 
-	apocalypse = {
+	{
 		name: "Apocalypse",
 		generationRate: 7,
 		playerSpeed: 0.08,
@@ -37,7 +37,7 @@ var diffs = [
 		hp: 2,
 		cloudAmount: 100
 	},
-	
+
 	twf = {
 		name: "Together We've Fallen",
 		generationRate: 1,
@@ -63,7 +63,9 @@ var cloudAmount = difficulty.cloudAmount;
 var gameState = 2;
 
 var audio = document.getElementById('audio');
+audio.play();
 var hit = document.getElementById('hit');
+var eat = document.getElementById('eat');
 
 document.body.addEventListener('touchmove', function (event) {
 	event.preventDefault();
@@ -165,7 +167,7 @@ psLogo.position.set(0, 4, -10);
 
 var pvfmText = document.createElement('div');
 pvfmText.style.position = 'absolute';
-pvfmText.innerHTML = "Game created by Techniponi<br/>Music from <a href='http://ponyvillefm.com'>Ponyville FM</a>";
+pvfmText.innerHTML = "Game created by Techniponi<br/>Music from <a href='https://www.youtube.com/watch?v=8VzUh7rAm0A'>Aftermath</a>";
 pvfmText.style.top = window.innerHeight - 50 + 'px';
 pvfmText.style.left = 20 + 'px';
 if (textSize != undefined) {
@@ -186,21 +188,36 @@ document.body.appendChild(text2);
 
 // init base objects
 var meshes = [];
+var sausageMeshes = [];
 var cloudTexture = new THREE.TextureLoader().load('sprite.png');
-var cloudMaterial = new THREE.MeshBasicMaterial({ map: cloudTexture });
-cloudMaterial.transparent = true;
 var cloudplaneGeometry = new THREE.PlaneGeometry(1, 1);
 
 // create a new iteration of clouds
 function generateSprites() {
 
 	for (i = 0; i < cloudAmount; i++) {
+		var cloudMaterial = new THREE.MeshBasicMaterial({ map: cloudTexture });
+		cloudMaterial.transparent = true;
 		var mesh = new THREE.Mesh(cloudplaneGeometry, cloudMaterial);
-		mesh.position.set(getRandomArbitrary(-10, 10), getRandomArbitrary(-10, 10), getRandomArbitrary(-35, -40));
+		mesh.position.set(Player.position.x + getRandomArbitrary(-7.5, 7.5), Player.position.y + getRandomArbitrary(-7.5, 7.5), getRandomArbitrary(-20, -25));
+		mesh.material.opacity = 0.0;
 
 		meshes.push(mesh);
 
 		scene.add(mesh);
+	}
+
+	if (hp < difficulty.hp) {
+		if (getRandomInt(0, 30) == 13) {
+			var sausageTexture = new THREE.TextureLoader().load('sausage.png');
+			var sausageMaterial = new THREE.MeshBasicMaterial({ map: sausageTexture, transparent: true });
+			var sausageMesh = new THREE.Mesh(cloudplaneGeometry, sausageMaterial);
+			sausageMesh.position.set(Player.position.x + getRandomArbitrary(-2, 2), Player.position.y + getRandomArbitrary(-2, 2), getRandomArbitrary(-20, -25));
+			sausageMesh.material.opacity = 0.0;
+
+			sausageMeshes.push(sausageMesh);
+			scene.add(sausageMesh);
+		}
 	}
 }
 
@@ -267,18 +284,9 @@ function render() {
 		char.position = charPos;
 	}
 
-	if (input.isDown("P")) {
-		pkeyDown = true;
-	}
-
-	if (!input.isDown("P") && pkeyDown == true) {
-		if (audio.paused) {
-			audio.play();
-		} else {
-			audio.pause();
-		}
-
-		pkeyDown = false;
+	if (audio.ended) {
+		audio.currentTime = 0;
+		audio.play();
 	}
 
 	tpLogo.lookAt(Player.position);
@@ -290,8 +298,15 @@ function render() {
 
 	for (var o = meshes.length - 1; o >= 0; o--) {
 		if (meshes[o].position.z > 0) {
-			scene.remove(o);
+			scene.remove(meshes[o]);
 			meshes.splice(o, 1);
+		}
+	}
+
+	for (var o = sausageMeshes.length - 1; o >= 0; o--) {
+		if (sausageMeshes[o].position.z > 0) {
+			scene.remove(sausageMeshes[o]);
+			sausageMeshes.splice(o, 1);
 		}
 	}
 
@@ -304,16 +319,17 @@ function render() {
 		distance++;
 
 		if ((framesPassed / 900) % 1 == 0) {
-			cloudAmount *= 1.5;
-			cloudSpeed *= 1.5;
-			generationRate = Math.floor(generationRate * 0.75);
+			cloudAmount *= 1.25;
+			cloudSpeed *= 1.25;
+			playerSpeed *= 1.1;
+			generationRate = Math.floor(generationRate * 0.9);
 			if (generationStep >= generationRate) {
 				generationStep = 0;
 			}
 		}
 
 		// movement
-		if (input.isDown("W") && Player.position.y <= movementRange) {
+		/*if (input.isDown("W") && Player.position.y <= movementRange) {
 			Player.position.y += playerSpeed;
 		}
 
@@ -327,6 +343,22 @@ function render() {
 
 		if (input.isDown("D") && Player.position.x <= movementRange) {
 			Player.position.x += playerSpeed;
+		}*/
+
+		if (input.isDown("W")) {
+			Player.position.y += playerSpeed;
+		}
+
+		if (input.isDown("A")) {
+			Player.position.x -= playerSpeed;
+		}
+
+		if (input.isDown("S")) {
+			Player.position.y -= playerSpeed;
+		}
+
+		if (input.isDown("D")) {
+			Player.position.x += playerSpeed;
 		}
 
 		// triggers cloud iteration every generationRate frames
@@ -336,9 +368,31 @@ function render() {
 			generationStep = 0;
 		}
 
+		sausageMeshes.forEach(function (s) {
+			if (s != null && sausageMeshes[sausageMeshes.indexOf(s)] != null) {
+				s.position.z += cloudSpeed;
+				if (s.material.opacity < 1.0) {
+					s.material.opacity += 0.05;
+				}
+
+				if (s.position.distanceTo(Player.position) < 0.5) {
+					eat.currentTime = 0;
+					eat.play();
+					hp++;
+					sausageMeshes.splice(sausageMeshes.indexOf(s), 1);
+					scene.remove(s);
+					s.material.dispose();
+					s.geometry.dispose();
+				}
+			}
+		});
+
 		meshes.forEach(function (x) {
 			if (x != null && meshes[meshes.indexOf(x)] != null) {
 				x.position.z += cloudSpeed;
+				if (x.material.opacity < 1.0) {
+					x.material.opacity += 0.05;
+				}
 
 				if (x.position.distanceTo(Player.position) < 0.5) {
 					collisionNumber++;
@@ -349,8 +403,8 @@ function render() {
 					hit.play();
 					meshes.splice(meshes.indexOf(x), 1);
 					scene.remove(x);
-					cloudMaterial.dispose();
-					cloudplaneGeometry.dispose();
+					x.material.dispose();
+					x.geometry.dispose();
 					cloudTexture.dispose();
 				}
 			}
@@ -385,6 +439,11 @@ function render() {
 			meshes.splice(o, 1);
 		}
 
+		for (var s = sausageMeshes.length - 1; s >= 0; s--) {
+			scene.remove(sausageMeshes[s]);
+			sausageMeshes.splice(s, 1);
+		}
+
 		Player.position.x = 0;
 		Player.position.y = 0;
 		Player.position.z = 0;
@@ -415,7 +474,7 @@ function render() {
 			resetGame();
 		}
 	} else {
-		text2.innerHTML = "Press R to start!<br/><br/>Difficulty: " + difficulty.name + "<br/>Press T to cycle difficulty.<br/><br/><br/><br/<br/>Press P to toggle music.";
+		text2.innerHTML = "Press R to start!<br/><br/>Difficulty: " + difficulty.name + "<br/>Press T to cycle difficulty.";
 
 		text2.style.top = (window.innerHeight / 2) - text2.offsetHeight / 2 + 'px';
 		text2.style.left = (window.innerWidth / 2) - text2.offsetWidth / 2 + 'px';
