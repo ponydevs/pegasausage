@@ -133,6 +133,8 @@ input = {
     }
 };
 
+var lbThing = false;
+
 document.addEventListener('mousedown', onDocumentMouseDown, false);
 document.addEventListener('touchstart', onDocumentTouchStart, false);
 document.addEventListener('mouseup', onDocumentMouseUp, false);
@@ -151,6 +153,16 @@ var mouse;
 var clickable = [];
 raycaster = new THREE.Raycaster();
 mouse = new THREE.Vector2();
+
+function httpGetAsync(theUrl, callback) { // callback(response)
+    var xmlHttp = new XMLHttpRequest();
+    xmlHttp.onreadystatechange = function () {
+        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            callback(xmlHttp.responseText);
+    }
+    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+    xmlHttp.send(null);
+}
 
 window.addEventListener('resize', onWindowResize, false);
 
@@ -200,7 +212,6 @@ function onDocumentMouseDown(event) {
 
 	if (intersects.length > 0) {
 		// do things with intersects
-		console.log(intersects);
 
 		if (intersects[0].object.material.map == startImg) {
 			if (audio.currentTime == 0) {
@@ -293,8 +304,6 @@ Player.add(tpLogo);
 Player.add(psLogo);
 Player.add(startBtn);
 Player.add(diffBtn);
-var newTpLogo = tpLogo.clone();
-var newPsLogo = tpLogo.clone();
 tpLogo.material.transparent = true;
 psLogo.material.transparent = true;
 startBtn.material.transparent = true;
@@ -333,6 +342,7 @@ if (textSize != undefined) {
 	credits.style.textAlign = 'left';
 }
 document.body.appendChild(credits);
+var creditsText = "Game created by <a href='https://twitter.com/techniponi'>Techniponi</a><br/>Music by <a href='https://www.youtube.com/watch?v=8VzUh7rAm0A'>Aftermath</a><br/>Background by <a href='http://goblinengineer.deviantart.com/'>GoblinEngineer</a><br/>Eating sound effect by Declan<br/>BETA 0.9";
 
 var crosshair = document.createElement('div');
 crosshair.style.position = 'absolute';
@@ -431,17 +441,10 @@ function resetGame() {
 	camera.position.set(0, 0, 0);
 	char.position.set(0, 0, -0.8);
 	char.lookAt(poo);
-	newTpLogo = tpLogo.clone();
-	newPsLogo = tpLogo.clone();
-	newTpLogo.visible = true;
-	newPsLogo.visible = true;
 	credits.innerHTML = "";
-	newTpLogo.position.set(0, -5, -10);
-	newpsLogo.position.set(0, 6, -10);
-	meshes.push(newTpLogo);
-	meshes.push(newPsLogo);
 	pvfmText.innerHTML = "";
 	crosshair.style.visibility = "visible";
+	lbThing = false;
 }
 
 var framesPassed = 0;
@@ -668,6 +671,13 @@ function render() {
 		camera.position.x = 0;
 		camera.position.y = 0;
 		camera.position.z = 0;
+		
+		if(lbThing == false){
+			lbThing = true;
+			//httpGetAsync("http://pegasausage.com:6969/iglb", function(request){
+			//	console.log(request);
+			//});
+		}
 
 		text2.innerHTML = "GAME OVER<br/>Distance: " + Math.floor(distance) + "<br/><br/>Difficulty: " + difficulty.name;
 
@@ -695,7 +705,7 @@ function render() {
 			resetGame();
 		}
 
-		credits.innerHTML = "Game created by <a href='https://twitter.com/techniponi'>Techniponi</a><br/>Music by <a href='https://www.youtube.com/watch?v=8VzUh7rAm0A'>Aftermath</a><br/>Background by <a href='http://goblinengineer.deviantart.com/'>GoblinEngineer</a><br/>Eating sound effect by Declan"
+		credits.innerHTML = creditsText;
 		credits.style.top = window.innerHeight - credits.offsetHeight - 10 + "px";
 		if (!touchInput) {
 			credits.style.left = (window.innerWidth / 2) - credits.offsetWidth / 2 + 'px';
@@ -716,7 +726,7 @@ function render() {
 		text2.style.left = (window.innerWidth / 2) - text2.offsetWidth / 2 + 'px';
 		pvfmText.innerHTML = "";
 
-		credits.innerHTML = "Game created by <a href='https://twitter.com/techniponi'>Techniponi</a><br/>Music by <a href='https://www.youtube.com/watch?v=8VzUh7rAm0A'>Aftermath</a><br/>Background by <a href='http://goblinengineer.deviantart.com/'>GoblinEngineer</a><br/>Eating sound effect by Declan"
+		credits.innerHTML = creditsText;
 		credits.style.top = window.innerHeight - credits.offsetHeight - 10 + "px";
 		if (!touchInput) {
 			credits.style.left = (window.innerWidth / 2) - credits.offsetWidth / 2 + 'px';
