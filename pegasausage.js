@@ -326,10 +326,11 @@ document.body.appendChild(text2);
 
 var credits = document.createElement('div');
 credits.style.position = 'absolute';
-credits.style.textAlign = 'left';
+credits.style.textAlign = 'center';
 credits.innerHTML = "";
 if (textSize != undefined) {
 	credits.style.fontSize = textSize + 'pt';
+	credits.style.textAlign = 'left';
 }
 document.body.appendChild(credits);
 
